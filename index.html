@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Open Weather</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.10.7/dayjs.min.js"></script>
+    <link rel="stylesheet" href="./assets/css/style.css">
+   
+</head>
+
+<body>
+    <div class="row">
+        <div class="col-12 bg-primary bg-gradient text-white d-flex justify-content-center">
+            <h2>Weather Dashboard</h2>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-3 p-4">
+            <h3>Search for a City</h3>
+            <form id="search-form">
+                <input id="city-name" type="text" class="form-control" placeholder="Enter city name">
+                <button class="btn btn-primary w-100 my-3" type="submit">Search</button>
+            </form>
+            <hr>
+
+            <div class="row">
+                <div class="col-12">
+                    <button class="btn btn-secondary w-100 my-1" onclick="populateCurrentWeather('Miami')">Miami</button>
+                    <button class="btn btn-secondary w-100 my-1" onclick="populateCurrentWeather('Chicago')">Chicago</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-9">
+            <div class="row">
+                <div class="col-10">
+                    <div class="p-5 my-5 mb-4 bg-body-tertiary border rounded-3">
+                        <div class="container-fluid" id="current-weather">
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h4>5-Day Forecast:</h4>
+            <div class="row" id="five-day">
+                <div class="col-sm-2 mb-3 mb-sm-0">
+                  <div class="card">
+                    <div class="card-body">
+                      <h5 class="card-title">9/17/2024</h5>
+                      <img src="https://openweathermap.org/img/wn/01d@2x.png" alt="">
+                      <p>Temp: <span>73 °F</span></p>
+                      <p>wind: <span>9 MPH</span></p>
+                      <p>Humidity: <span>47%</span></p>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-sm-2">
+                  <div class="card">
+                    <div class="card-body">
+                      <h5 class="card-title">9/18/2024</h5>
+                      <img src="https://openweathermap.org/img/wn/01d@2x.png" alt="">
+                      <p>Temp: <span>71 °F</span></p>
+                      <p>wind: <span>10 MPH</span></p>
+                      <p>Humidity: <span>39%</span></p>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-sm-2">
+                    <div class="card">
+                      <div class="card-body">
+                        <h5 class="card-title">9/19/2024</h5>
+                        <img src="https://openweathermap.org/img/wn/01d@2x.png" alt="">
+                        <p>Temp: <span>71 °F</span></p>
+                        <p>wind: <span>8 MPH</span></p>
+                        <p>Humidity: <span>40%</span></p>
+                      </div>
+                    </div>
+                </div>
+                <div class="col-sm-2">
+                    <div class="card">
+                      <div class="card-body">
+                        <h5 class="card-title">9/20/2024</h5>
+                        <img src="https://openweathermap.org/img/wn/01d@2x.png" alt="">
+                        <p>Temp: <span>72 °F</span></p>
+                            <p>wind: <span>7 MPH</span></p>
+                            <p>Humidity: <span>42%</span></p>
+                      </div>
+                    </div>
+                </div>
+                <div class="col-sm-2">
+                    <div class="card">
+                      <div class="card-body">
+                        <h5 class="card-title">9/21/2024</h5>
+                        <img src="https://openweathermap.org/img/wn/01d@2x.png" alt="">
+                        <p>Temp: <span>70 °F</span></p>
+                            <p>wind: <span>11 MPH</span></p>
+                            <p>Humidity: <span>45%</span></p>
+                      </div>
+                    </div>
+                </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.10.7/dayjs.min.js"></script>
+    <script>  const searchFormEl = document.querySelector("#search-form");
+      const cityNameEl = document.querySelector('#city-name');
+      const currentWeatherEl = document.querySelector("#current-weather");
+      const fiveDayEl = document.querySelector("#five-day");
+      const apiKey = '72979675a19cce8d2b57ed1f7ce224a2';
+
+      let cityHistory = JSON.parse(localStorage.getItem('cityHistory')) || [];
+
+      
+      if (cityHistory.length > 0) {
+          populateCurrentWeather(cityHistory[cityHistory.length - 1]);
+          populate5Day(cityHistory[cityHistory.length - 1]);
+      }
+
+      function searchCity(event) {
+          event.preventDefault();
+          const cityName = cityNameEl.value;
+          populateCurrentWeather(cityName);
+          populate5Day(cityName);
+
+          
+          if (!cityHistory.includes(cityName)) {
+              cityHistory.push(cityName);
+              localStorage.setItem('cityHistory', JSON.stringify(cityHistory));
+          }
+      }
+
+      function populateCurrentWeather(cityName) {
+          const url = `https://api.openweathermap.org/data/2.5/weather?q=${cityName}&appid=${apiKey}&units=imperial`;
+
+          fetch(url)
+              .then(function (response) {
+                  return response.json();
+              })
+              .then(function (data) {
+                  currentWeatherEl.innerHTML = `
+                      <h3>${data.name} (${dayjs.unix(data.dt).format("MM/DD/YYYY")}) 
+                          <img src="https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png" alt="">
+                      </h3>
+                      <p>Temp: <span>${data.main.temp} °F</span></p>
+                      <p>Wind: <span>${data.wind.speed} MPH</span></p>
+                      <p>Humidity: <span>${data.main.humidity} %</span></p>
+                  `;
+                  console.log(data);
+              })
+              .catch(function (error) {
+                  currentWeatherEl.innerHTML = `<p class="text-danger">City not found!</p>`;
+                  console.error(error);
+              });
+      }
+
+      
+      function populate5Day(cityName) {
+          const url = `https://api.openweathermap.org/data/2.5/forecast?q=${cityName}&appid=${apiKey}&units=imperial`;
+
+          fetch(url)
+              .then(function (response) {
+                  return response.json();
+              })
+              .then(function (data) {
+                  fiveDayEl.textContent = '';
+
+                  for (let i = 3; i < data.list.length; i += 8) {
+                      const forecast = data.list[i];
+                      fiveDayEl.innerHTML += `
+                          <div class="col-sm-2 mb-3 mb-sm-0">
+                              <div class="card">
+                                  <div class="card-body">
+                                      <h5 class="card-title">${dayjs.unix(forecast.dt).format("MM/DD/YYYY")}</h5>
+                                      <img src="https://openweathermap.org/img/wn/${forecast.weather[0].icon}@2x.png" alt="">
+                                      <p>Temp: <span>${forecast.main.temp} °F</span></p>
+                                      <p>Wind: <span>${forecast.wind.speed} MPH</span></p>
+                                      <p>Humidity: <span>${forecast.main.humidity} %</span></p>
+                                  </div>
+                              </div>
+                          </div>
+                      `;
+                  }
+              })
+              .catch(function (error) {
+                  console.error(error);
+              });
+      }
+
+      searchFormEl.addEventListener('submit', searchCity);
+      function renderHistory() {
+        const historyEl = document.querySelector("#history");
+        historyEl.innerHTML = '';
+        cityHistory.forEach(city => {
+            const button = document.createElement('button');
+            button.textContent = city.charAt(0).toUpperCase() + city.slice(1);
+            button.className = 'btn btn-secondary w-100 my-1';
+            button.onclick = () => {
+                populateCurrentWeather(city);
+                populate5Day(city);
+            };
+            historyEl.appendChild(button);
+        });
+    }
+
+        renderHistory();
+      </script>
+</body>
+
+</html>
